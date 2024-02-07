@@ -4,5 +4,4 @@ export class CreateTrackDto {
   readonly text;
   readonly picture;
   readonly audio;
-  readonly duration;
 }
