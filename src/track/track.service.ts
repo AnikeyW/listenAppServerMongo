@@ -6,6 +6,7 @@ import { Comment, CommentDocument } from './schemas/comment.schema';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { FileService, FileType } from '../file/file.service';
+import { AlbumService } from '../album/album.service';
 
 @Injectable()
 export class TrackService {
@@ -13,6 +14,7 @@ export class TrackService {
     @InjectModel(Track.name) private trackModel: Model<TrackDocument>,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     private fileService: FileService,
+    private albumService: AlbumService,
   ) {}
 
   async create(dto: CreateTrackDto, picture, audio): Promise<Track> {
@@ -21,25 +23,20 @@ export class TrackService {
     const duration: number = await this.fileService.getAudioDuration(
       audio.buffer,
     );
+    const { albumId, ...rest } = dto;
     const track = await this.trackModel.create({
-      ...dto,
+      ...rest,
+      albumId: albumId ? albumId : null,
       listens: 0,
       audio: audioPath,
       picture: picturePath,
       duration: duration,
     });
+    if (albumId) {
+      await this.albumService.addTrackToAlbum(albumId, track);
+    }
     return track;
   }
-
-  // async create(dto: CreateTrackDto): Promise<Track> {
-  //   try {
-  //     const {duration, ...rest} = dto
-  //     const track = await this.trackModel.create({...rest, listens: 0, duration: Number(duration)})
-  //     return track;
-  //   } catch (e) {
-  //     return e
-  //   }
-  // }
 
   async getAll(count = 10, offset = 0): Promise<Track[]> {
     const tracks = await this.trackModel

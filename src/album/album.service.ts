@@ -4,11 +4,13 @@ import { FileService, FileType } from '../file/file.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Album, AlbumDocument } from './schemas/album.schema';
 import { Model, ObjectId } from 'mongoose';
+import { Track, TrackDocument } from '../track/schemas/track.schema';
 
 @Injectable()
 export class AlbumService {
   constructor(
     @InjectModel(Album.name) private albumModel: Model<AlbumDocument>,
+    @InjectModel(Track.name) private trackModel: Model<TrackDocument>,
     private fileService: FileService,
   ) {}
 
@@ -33,8 +35,28 @@ export class AlbumService {
   }
 
   async delete(id: ObjectId): Promise<ObjectId> {
-    const album = await this.albumModel.findByIdAndDelete(id);
+    const album = await this.albumModel.findById(id);
+
+    if (!album) {
+      throw new Error('Альбом не найден');
+    }
+
+    await this.trackModel.updateMany({ albumId: album._id }, { albumId: null });
+
+    await album.deleteOne();
+
     const fileName = this.fileService.removeFile(album.picture);
+
     return album._id;
+  }
+
+  async addTrackToAlbum(albumId: ObjectId, track: Track) {
+    const album = await this.albumModel.findById(albumId);
+    if (album) {
+      album.tracks.push(track);
+      await album.save();
+    } else {
+      throw new Error('Альбом не найден');
+    }
   }
 }
