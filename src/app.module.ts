@@ -5,15 +5,18 @@ import { FileModule } from './file/file.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { AlbumModule } from './album/album.module';
+import * as process from 'process';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: `.${process.env.NODE_ENV}.env`,
+    }),
     ServeStaticModule.forRoot({
       rootPath: path.resolve(__dirname, '..', 'static'),
     }),
-    MongooseModule.forRoot(
-      'mongodb+srv://admin:admin@cluster0.evypqpo.mongodb.net/music-platform?retryWrites=true&w=majority',
-    ),
+    MongooseModule.forRoot(process.env.DATABASE_CONNECT),
     TrackModule,
     FileModule,
     AlbumModule,
