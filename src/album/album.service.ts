@@ -35,17 +35,21 @@ export class AlbumService {
   }
 
   async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
-    const album = await this.albumModel.findById(id);
+    const album = await this.albumModel.findByIdAndDelete(id);
 
     if (!album) {
       throw new Error('Альбом не найден');
     }
 
-    await this.trackModel.updateMany({ albumId: album._id }, { albumId: null });
+    const albumIdString = id.toString();
+    await this.trackModel.updateMany(
+      { albumId: albumIdString },
+      { albumId: null },
+    );
 
-    await album.deleteOne();
-
-    const fileName = this.fileService.removeFile(album.picture);
+    if (album.tracks.length === 0) {
+      const fileName = this.fileService.removeFile(album.picture);
+    }
 
     return album._id;
   }
