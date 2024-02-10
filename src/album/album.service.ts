@@ -3,7 +3,7 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { FileService, FileType } from '../file/file.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Album, AlbumDocument } from './schemas/album.schema';
-import { Model, ObjectId } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Track, TrackDocument } from '../track/schemas/track.schema';
 
 @Injectable()
@@ -29,12 +29,12 @@ export class AlbumService {
     return albums;
   }
 
-  async getOne(id: ObjectId): Promise<Album> {
+  async getOne(id: string): Promise<Album> {
     const album = await this.albumModel.findById(id);
     return album;
   }
 
-  async delete(id: ObjectId): Promise<ObjectId> {
+  async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
     const album = await this.albumModel.findById(id);
 
     if (!album) {
@@ -50,13 +50,19 @@ export class AlbumService {
     return album._id;
   }
 
-  async addTrackToAlbum(albumId: ObjectId, track: Track) {
+  async addTrackToAlbum(albumId: Types.ObjectId, trackId: Types.ObjectId) {
     const album = await this.albumModel.findById(albumId);
-    if (album) {
-      album.tracks.push(track);
-      await album.save();
-    } else {
+    if (!album) {
       throw new Error('Альбом не найден');
     }
+
+    const track = await this.trackModel.findById(trackId);
+    track.albumId = albumId;
+    await track.save();
+
+    album.tracks.push(track);
+    await album.save();
+
+    return track;
   }
 }

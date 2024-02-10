@@ -1,18 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Track, TrackDocument } from './schemas/track.schema';
-import { Model, ObjectId } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Comment, CommentDocument } from './schemas/comment.schema';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { FileService, FileType } from '../file/file.service';
 import { AlbumService } from '../album/album.service';
+import { Album, AlbumDocument } from '../album/schemas/album.schema';
 
 @Injectable()
 export class TrackService {
   constructor(
     @InjectModel(Track.name) private trackModel: Model<TrackDocument>,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    @InjectModel(Album.name) private albumModel: Model<AlbumDocument>,
     private fileService: FileService,
     private albumService: AlbumService,
   ) {}
@@ -33,7 +35,7 @@ export class TrackService {
       duration: duration,
     });
     if (albumId) {
-      await this.albumService.addTrackToAlbum(albumId, track);
+      await this.albumService.addTrackToAlbum(albumId, track._id);
     }
     return track;
   }
@@ -46,15 +48,23 @@ export class TrackService {
     return tracks;
   }
 
-  async getOne(id: ObjectId): Promise<Track> {
+  async getOne(id: Types.ObjectId): Promise<Track> {
     const track = await this.trackModel.findById(id).populate('comments');
     return track;
   }
 
-  async delete(id: ObjectId): Promise<ObjectId> {
+  async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
     const track = await this.trackModel.findByIdAndDelete(id);
     const pictureName = this.fileService.removeFile(track.picture);
+
     const audioName = this.fileService.removeFile(track.audio);
+    const album = await this.albumModel.findById(track.albumId);
+    const albumTracks = album.tracks.filter(
+      (t) => t._id.toString() !== id.toString(),
+    );
+    album.tracks = [...albumTracks];
+    await album.save();
+
     return track._id;
   }
 
@@ -66,7 +76,7 @@ export class TrackService {
     return comment;
   }
 
-  async listen(id: ObjectId) {
+  async listen(id: Types.ObjectId) {
     const track = await this.trackModel.findById(id);
     track.listens += 1;
     track.save();

@@ -1,43 +1,53 @@
-import {Body, Controller, Delete, Get, Param, Post, Query, UploadedFiles, UseInterceptors} from "@nestjs/common";
-import {TrackService} from "./track.service";
-import {CreateTrackDto} from "./dto/create-track.dto";
-import {ObjectId} from "mongoose";
-import {CreateCommentDto} from "./dto/create-comment.dto";
-import {FileFieldsInterceptor} from "@nestjs/platform-express";
-
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+import { TrackService } from './track.service';
+import { CreateTrackDto } from './dto/create-track.dto';
+import { ObjectId, Types } from 'mongoose';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller('/tracks')
 export class TrackController {
-  constructor(private trackService: TrackService) {    }
+  constructor(private trackService: TrackService) {}
 
   @Post()
-  @UseInterceptors(FileFieldsInterceptor([
-    { name: 'picture', maxCount: 1 },
-    { name: 'audio', maxCount: 1 },
-  ]))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'picture', maxCount: 1 },
+      { name: 'audio', maxCount: 1 },
+    ]),
+  )
   create(@UploadedFiles() files, @Body() dto: CreateTrackDto) {
-    const {picture, audio} = files
+    const { picture, audio } = files;
     return this.trackService.create(dto, picture[0], audio[0]);
   }
 
   @Get()
-  getAll(@Query('count') count: number,
-         @Query('offset') offset: number) {
-    return this.trackService.getAll(Number(count), Number(offset))
+  getAll(@Query('count') count: number, @Query('offset') offset: number) {
+    return this.trackService.getAll(Number(count), Number(offset));
   }
 
   @Get('/search')
   search(@Query('query') query: string) {
-    return this.trackService.search(query)
+    return this.trackService.search(query);
   }
 
   @Get(':id')
-  getOne(@Param('id') id: ObjectId) {
+  getOne(@Param('id') id: Types.ObjectId) {
     return this.trackService.getOne(id);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: ObjectId) {
+  delete(@Param('id') id: Types.ObjectId) {
     return this.trackService.delete(id);
   }
 
@@ -47,7 +57,7 @@ export class TrackController {
   }
 
   @Post('/listen/:id')
-  listen(@Param('id') id: ObjectId) {
+  listen(@Param('id') id: Types.ObjectId) {
     return this.trackService.listen(id);
   }
 }

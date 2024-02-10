@@ -11,7 +11,7 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
-import { ObjectId } from 'mongoose';
+import { Types } from 'mongoose';
 
 @Controller('/albums')
 export class AlbumController {
@@ -30,12 +30,18 @@ export class AlbumController {
   }
 
   @Get(':id')
-  getOne(@Param('id') id: ObjectId) {
+  getOne(@Param('id') id: string) {
     return this.albumService.getOne(id);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: ObjectId) {
+  delete(@Param('id') id: Types.ObjectId) {
     return this.albumService.delete(id);
+  }
+
+  @Post('/addtrack')
+  addTrack(@Body() data: { albumId: Types.ObjectId; trackId: Types.ObjectId }) {
+    const { albumId, trackId } = data;
+    return this.albumService.addTrackToAlbum(albumId, trackId);
   }
 }
