@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as uuid from 'uuid';
 import * as mm from 'music-metadata';
+import * as mime from 'mime-types';
 
 export enum FileType {
   AUDIO = 'audio',
@@ -13,7 +14,7 @@ export enum FileType {
 export class FileService {
   createFile(type: FileType, file): string {
     try {
-      const fileExtension = file.originalname.split('.').pop();
+      const fileExtension = mime.extension(file.mimetype);
       const fileName = uuid.v4() + '.' + fileExtension;
       const filePath = path.resolve(__dirname, '..', '..', 'static', type);
       if (!fs.existsSync(filePath)) {

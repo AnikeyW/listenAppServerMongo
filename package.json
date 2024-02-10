@@ -27,6 +27,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/serve-static": "^4.0.0",
     "cross-env": "^7.0.3",
+    "mime-types": "^2.1.35",
     "mongoose": "^8.1.1",
     "music-metadata": "^7.14.0",
     "reflect-metadata": "^0.1.13",
