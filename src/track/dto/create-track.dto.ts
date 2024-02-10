@@ -3,4 +3,5 @@ export class CreateTrackDto {
   readonly artist;
   readonly text;
   readonly albumId;
+  readonly picture?;
 }

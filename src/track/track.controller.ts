@@ -28,7 +28,11 @@ export class TrackController {
   )
   create(@UploadedFiles() files, @Body() dto: CreateTrackDto) {
     const { picture, audio } = files;
-    return this.trackService.create(dto, picture[0], audio[0]);
+    if (!picture && typeof dto.picture === 'string') {
+      return this.trackService.createWithAlbumPicture(dto, audio[0]);
+    } else {
+      return this.trackService.create(dto, picture[0], audio[0]);
+    }
   }
 
   @Get()

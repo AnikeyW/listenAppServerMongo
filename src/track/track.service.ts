@@ -40,6 +40,25 @@ export class TrackService {
     return track;
   }
 
+  async createWithAlbumPicture(dto: CreateTrackDto, audio): Promise<Track> {
+    const audioPath = this.fileService.createFile(FileType.AUDIO, audio);
+    const duration: number = await this.fileService.getAudioDuration(
+      audio.buffer,
+    );
+    const { albumId, ...rest } = dto;
+    const track = await this.trackModel.create({
+      ...rest,
+      albumId: albumId ? albumId : null,
+      listens: 0,
+      audio: audioPath,
+      duration: duration,
+    });
+    if (albumId) {
+      await this.albumService.addTrackToAlbum(albumId, track._id);
+    }
+    return track;
+  }
+
   async getAll(count = 10, offset = 0): Promise<Track[]> {
     const tracks = await this.trackModel
       .find()
