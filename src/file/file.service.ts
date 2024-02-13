@@ -10,18 +10,37 @@ export enum FileType {
   IMAGE = 'image',
 }
 
+export enum EntityType {
+  ALBUM = 'album',
+  TRACK = 'track',
+}
+
 @Injectable()
 export class FileService {
-  createFile(type: FileType, file): string {
+  createFile(type: FileType, file, entityType: EntityType): string {
     try {
       const fileExtension = mime.extension(file.mimetype);
       const fileName = uuid.v4() + '.' + fileExtension;
-      const filePath = path.resolve(__dirname, '..', '..', 'static', type);
+      let filePath;
+      if (type === FileType.IMAGE) {
+        filePath = path.resolve(
+          __dirname,
+          '..',
+          '..',
+          'static',
+          type,
+          entityType,
+        );
+      } else {
+        filePath = path.resolve(__dirname, '..', '..', 'static', type);
+      }
       if (!fs.existsSync(filePath)) {
         fs.mkdirSync(filePath, { recursive: true });
       }
       fs.writeFileSync(path.resolve(filePath, fileName), file.buffer);
-      return type + '/' + fileName;
+      return type === FileType.IMAGE
+        ? type + '/' + entityType + '/' + fileName
+        : type + '/' + fileName;
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

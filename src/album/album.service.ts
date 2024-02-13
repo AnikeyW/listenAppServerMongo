@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
-import { FileService, FileType } from '../file/file.service';
+import { EntityType, FileService, FileType } from '../file/file.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Album, AlbumDocument } from './schemas/album.schema';
 import { Model, Types } from 'mongoose';
@@ -15,7 +15,11 @@ export class AlbumService {
   ) {}
 
   async create(dto: CreateAlbumDto, picture): Promise<Album> {
-    const picturePath = this.fileService.createFile(FileType.IMAGE, picture);
+    const picturePath = this.fileService.createFile(
+      FileType.IMAGE,
+      picture,
+      EntityType.ALBUM,
+    );
     const album = await this.albumModel.create({
       ...dto,
       picture: picturePath,
@@ -41,14 +45,14 @@ export class AlbumService {
       throw new Error('Альбом не найден');
     }
 
-    const albumIdString = id.toString();
-    await this.trackModel.updateMany(
-      { albumId: albumIdString },
-      { albumId: null },
-    );
-
-    if (album.tracks.length === 0) {
-      const fileName = this.fileService.removeFile(album.picture);
+    if (album.tracks.length !== 0) {
+      const albumIdString = id.toString();
+      await this.trackModel.updateMany(
+        { albumId: albumIdString },
+        { albumId: null },
+      );
+    } else {
+      this.fileService.removeFile(album.picture);
     }
 
     return album._id;

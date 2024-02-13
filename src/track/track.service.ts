@@ -5,7 +5,7 @@ import { Model, Types } from 'mongoose';
 import { Comment, CommentDocument } from './schemas/comment.schema';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { FileService, FileType } from '../file/file.service';
+import { EntityType, FileService, FileType } from '../file/file.service';
 import { AlbumService } from '../album/album.service';
 import { Album, AlbumDocument } from '../album/schemas/album.schema';
 
@@ -20,8 +20,16 @@ export class TrackService {
   ) {}
 
   async create(dto: CreateTrackDto, picture, audio): Promise<Track> {
-    const audioPath = this.fileService.createFile(FileType.AUDIO, audio);
-    const picturePath = this.fileService.createFile(FileType.IMAGE, picture);
+    const audioPath = this.fileService.createFile(
+      FileType.AUDIO,
+      audio,
+      EntityType.TRACK,
+    );
+    const picturePath = this.fileService.createFile(
+      FileType.IMAGE,
+      picture,
+      EntityType.TRACK,
+    );
     const duration: number = await this.fileService.getAudioDuration(
       audio.buffer,
     );
@@ -41,7 +49,11 @@ export class TrackService {
   }
 
   async createWithAlbumPicture(dto: CreateTrackDto, audio): Promise<Track> {
-    const audioPath = this.fileService.createFile(FileType.AUDIO, audio);
+    const audioPath = this.fileService.createFile(
+      FileType.AUDIO,
+      audio,
+      EntityType.TRACK,
+    );
     const duration: number = await this.fileService.getAudioDuration(
       audio.buffer,
     );
@@ -74,15 +86,22 @@ export class TrackService {
 
   async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
     const track = await this.trackModel.findByIdAndDelete(id);
-    const pictureName = this.fileService.removeFile(track.picture);
+    const entityType = track.picture.split('/')[1];
+    console.log(entityType);
+    if (entityType === EntityType.TRACK) {
+      this.fileService.removeFile(track.picture);
+    }
 
-    const audioName = this.fileService.removeFile(track.audio);
-    const album = await this.albumModel.findById(track.albumId);
-    const albumTracks = album.tracks.filter(
-      (t) => t._id.toString() !== id.toString(),
-    );
-    album.tracks = [...albumTracks];
-    await album.save();
+    this.fileService.removeFile(track.audio);
+
+    if (track.albumId) {
+      const album = await this.albumModel.findById(track.albumId);
+      const albumTracks = album.tracks.filter(
+        (t) => t._id.toString() !== id.toString(),
+      );
+      album.tracks = [...albumTracks];
+      await album.save();
+    }
 
     return track._id;
   }
