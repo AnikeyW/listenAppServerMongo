@@ -26,6 +26,9 @@ export class Track {
   @Prop()
   audio: string;
 
+  @Prop()
+  owner: string;
+
   @Prop({ type: Types.ObjectId })
   albumId: Types.ObjectId;
 
