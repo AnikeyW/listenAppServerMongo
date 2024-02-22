@@ -7,6 +7,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { AlbumModule } from './album/album.module';
 import * as process from 'process';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { ConfigModule } from '@nestjs/config';
     TrackModule,
     FileModule,
     AlbumModule,
+    AuthModule,
+    UserModule,
   ],
 })
 export class AppModule {}
