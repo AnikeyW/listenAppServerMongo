@@ -9,6 +9,7 @@ import * as process from 'process';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -17,6 +18,11 @@ import { UserModule } from './user/user.module';
     }),
     ServeStaticModule.forRoot({
       rootPath: path.resolve(__dirname, '..', 'static'),
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '60s' },
+      global: true,
     }),
     MongooseModule.forRoot(process.env.DATABASE_CONNECT),
     TrackModule,
