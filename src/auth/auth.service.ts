@@ -1,14 +1,21 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from '../token/token.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
+    private readonly tokenService: TokenService,
   ) {}
   async registration(dto: CreateUserDto) {
     const user = await this.userService.findByEmail(dto.email);
@@ -29,44 +36,54 @@ export class AuthService {
     });
   }
 
-  // async login(
-  //   email: string,
-  //   password: string,
-  // ): Promise<{ accessToken: string }> {
-  //   const candidate = await this.userService.findByEmail(email);
-  //   if (!candidate) {
-  //     throw new HttpException(
-  //       'Неверный email или пароль',
-  //       HttpStatus.BAD_REQUEST,
-  //     );
-  //   }
-  //
-  //   const matchedPass = await bcrypt.compare(password, candidate.password);
-  //   if (!matchedPass) {
-  //     throw new HttpException(
-  //       'Неверный email или пароль',
-  //       HttpStatus.BAD_REQUEST,
-  //     );
-  //   }
-  //
-  //   const pauload = {
-  //     _id: candidate._id,
-  //     email: candidate.email,
-  //     name: candidate.name,
-  //   };
-  //
-  //   const token = jwt.sign(pauload, process.env.JWT_SECRET, {
-  //     expiresIn: '1d',
-  //   });
-  //
-  //   return { accessToken: token };
-  // }
-
   async login(user: any) {
     const payload = { username: user.name, sub: user._id };
+
+    const tokens = this.tokenService.generateTokens(payload);
+    await this.tokenService.saveToken(user._id, tokens.refreshToken);
+
     return {
-      access_token: this.jwtService.sign(payload),
+      ...tokens,
       user,
+    };
+  }
+
+  async logout(refreshToken: string) {
+    const token = await this.tokenService.delete(refreshToken);
+    return token;
+  }
+
+  // async refreshToken(user: any) {
+  //   const payload = { username: user.name, sub: user._id };
+  //   return {
+  //     accessToken: this.jwtService.sign(payload),
+  //   };
+  // }
+
+  async refresh(refreshToken) {
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
+    const userData = this.tokenService.validateRefreshToken(refreshToken);
+    const tokenFromDb = await this.tokenService.findOne(refreshToken);
+    if (!userData || !tokenFromDb) {
+      throw new UnauthorizedException();
+    }
+
+    const user = await this.userService.findById(userData.sub);
+    const payload = { username: user.name, sub: user._id };
+    const tokens = this.tokenService.generateTokens(payload);
+    await this.tokenService.saveToken(user._id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        favoritesTracks: user.favoritesTracks,
+      },
     };
   }
 

@@ -11,6 +11,10 @@ export class UserService {
     return await this.userModel.findOne({ email }, { __v: false });
   }
 
+  async findById(id: string): Promise<UserDocument> {
+    return await this.userModel.findOne({ _id: id }, { __v: false });
+  }
+
   async create(user: CreateUserDto) {
     try {
       return await this.userModel.create(user);

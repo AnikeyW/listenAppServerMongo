@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { JwtModule } from '@nestjs/jwt';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '30s' },
       global: true,
     }),
     MongooseModule.forRoot(process.env.DATABASE_CONNECT),
@@ -30,6 +31,7 @@ import { JwtModule } from '@nestjs/jwt';
     AlbumModule,
     AuthModule,
     UserModule,
+    TokenModule,
   ],
 })
 export class AppModule {}
