@@ -13,6 +13,7 @@ export enum FileType {
 export enum EntityType {
   ALBUM = 'album',
   TRACK = 'track',
+  USER = 'user',
 }
 
 @Injectable()

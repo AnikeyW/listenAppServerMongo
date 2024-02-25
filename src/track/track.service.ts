@@ -87,7 +87,7 @@ export class TrackService {
   async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
     const track = await this.trackModel.findByIdAndDelete(id);
     const entityType = track.picture.split('/')[1];
-    console.log(entityType);
+
     if (entityType === EntityType.TRACK) {
       this.fileService.removeFile(track.picture);
     }
