@@ -5,11 +5,6 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 dotenv.config();
 
-// const httpsOptions = {
-//   key: fs.readFileSync('./secrets/localhost-key.pem'),
-//   cert: fs.readFileSync('./secrets/localhost.pem'),
-// };
-
 async function bootstrap() {
   let app;
   if (process.env.NODE_ENV === 'development') {
