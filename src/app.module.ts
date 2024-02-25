@@ -22,7 +22,7 @@ import { TokenModule } from './token/token.module';
     }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '30s' },
+      signOptions: { expiresIn: '15m' },
       global: true,
     }),
     MongooseModule.forRoot(process.env.DATABASE_CONNECT),

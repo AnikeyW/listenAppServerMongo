@@ -68,9 +68,7 @@ export class AuthController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    console.log(refreshToken);
     const userData = await this.authService.refresh(refreshToken);
-    console.log(userData);
     await res.cookie('refreshToken', userData.refreshToken, {
       maxAge: 30 * 24 * 60 * 60 * 1000,
       httpOnly: true,

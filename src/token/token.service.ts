@@ -13,7 +13,7 @@ export class TokenService {
 
   generateTokens(payload) {
     const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '1m' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
     return {
       accessToken,
       refreshToken,
