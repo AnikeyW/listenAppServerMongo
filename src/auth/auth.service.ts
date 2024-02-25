@@ -18,9 +18,9 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
   async registration(dto: CreateUserDto) {
-    const user = await this.userService.findByEmail(dto.email);
+    const candidate = await this.userService.findByEmail(dto.email);
 
-    if (user) {
+    if (candidate) {
       throw new HttpException(
         'Пользователь с таким email уже существует',
         HttpStatus.BAD_REQUEST,
@@ -30,10 +30,13 @@ export class AuthService {
     const hashPassword = bcrypt.hashSync(dto.password, 10);
     const { password, ...userWithoutPass } = dto;
 
-    return await this.userService.create({
+    const user = await this.userService.create({
       ...userWithoutPass,
       password: hashPassword,
     });
+
+    const { password: pass, ...result } = user['_doc'];
+    return result;
   }
 
   async login(user: any) {
@@ -50,15 +53,14 @@ export class AuthService {
 
   async logout(refreshToken: string) {
     const token = await this.tokenService.delete(refreshToken);
+    if (!token) {
+      throw new HttpException(
+        'При выходе из учетной записи произошла ошибка',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return token;
   }
-
-  // async refreshToken(user: any) {
-  //   const payload = { username: user.name, sub: user._id };
-  //   return {
-  //     accessToken: this.jwtService.sign(payload),
-  //   };
-  // }
 
   async refresh(refreshToken) {
     if (!refreshToken) {

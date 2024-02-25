@@ -6,6 +6,8 @@ import {
   Get,
   Req,
   Res,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
@@ -30,6 +32,8 @@ export class AuthController {
     await res.cookie('refreshToken', userData.refreshToken, {
       maxAge: 30 * 24 * 60 * 60 * 1000,
       httpOnly: true,
+      sameSite: 'none',
+      secure: true,
     });
     return res.json(userData);
   }
@@ -37,6 +41,12 @@ export class AuthController {
   @Get('logout')
   async logout(@Req() req, @Res() res) {
     const { refreshToken } = req.cookies;
+    if (!refreshToken) {
+      throw new HttpException(
+        'В Cookies отсутствует refreshToken',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const token = await this.authService.logout(refreshToken);
     res.clearCookie('refreshToken');
     return res.json(token);
@@ -48,16 +58,25 @@ export class AuthController {
     return req.user;
   }
 
-  @UseGuards(RefreshJwtAuthGuard)
+  // @UseGuards(RefreshJwtAuthGuard)
   @Get('refresh')
   async refresh(@Req() req, @Res() res) {
     const { refreshToken } = req.cookies;
+    if (!refreshToken) {
+      throw new HttpException(
+        'В Cookies отсутствует refreshToken',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    console.log(refreshToken);
     const userData = await this.authService.refresh(refreshToken);
+    console.log(userData);
     await res.cookie('refreshToken', userData.refreshToken, {
       maxAge: 30 * 24 * 60 * 60 * 1000,
       httpOnly: true,
+      sameSite: 'none',
+      secure: true,
     });
     return res.json(userData);
-    // return this.authService.refreshToken(req.user);
   }
 }
