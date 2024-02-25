@@ -5,17 +5,20 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 dotenv.config();
 
-const httpsOptions = {
-  // key: fs.readFileSync('./secrets/cert.key'),
-  key: fs.readFileSync('./secrets/localhost-key.pem'),
-  cert: fs.readFileSync('./secrets/localhost.pem'),
-  // cert: fs.readFileSync('./secrets/cert.crt'),
-};
+// const httpsOptions = {
+//   key: fs.readFileSync('./secrets/localhost-key.pem'),
+//   cert: fs.readFileSync('./secrets/localhost.pem'),
+// };
 
 async function bootstrap() {
   let app;
   if (process.env.NODE_ENV === 'development') {
-    app = await NestFactory.create(AppModule, { httpsOptions });
+    app = await NestFactory.create(AppModule, {
+      httpsOptions: {
+        key: fs.readFileSync('./secrets/localhost-key.pem'),
+        cert: fs.readFileSync('./secrets/localhost.pem'),
+      },
+    });
   } else {
     app = await NestFactory.create(AppModule);
   }
