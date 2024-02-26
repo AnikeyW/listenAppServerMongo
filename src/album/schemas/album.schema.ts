@@ -15,8 +15,8 @@ export class Album {
   @Prop()
   author: string;
 
-  @Prop()
-  owner: string;
+  @Prop({ type: Types.ObjectId })
+  owner: Types.ObjectId;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Track' }] })
   tracks: TrackDocument[];
