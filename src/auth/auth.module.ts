@@ -5,13 +5,12 @@ import { LocalStrategy } from './stratigies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../user/user.module';
 import { JwtStrategy } from './stratigies/jwt.strategy';
-import { RefreshJwtStrategy } from './stratigies/refreshToken.strategy';
 import { TokenModule } from '../token/token.module';
 
 @Module({
   imports: [UserModule, PassportModule, TokenModule],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
