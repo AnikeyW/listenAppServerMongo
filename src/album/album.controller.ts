@@ -43,11 +43,13 @@ export class AlbumController {
     return this.albumService.getOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   delete(@Param('id') id: Types.ObjectId) {
     return this.albumService.delete(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/addtrack')
   addTrack(@Body() data: { albumId: Types.ObjectId; trackId: Types.ObjectId }) {
     const { albumId, trackId } = data;
