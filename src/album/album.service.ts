@@ -33,6 +33,13 @@ export class AlbumService {
     return albums;
   }
 
+  async getMyAlbums(userId: Types.ObjectId): Promise<Album[]> {
+    const albums = await this.albumModel
+      .find({ owner: userId })
+      .sort({ createdAt: -1 });
+    return albums;
+  }
+
   async getOne(id: string): Promise<Album> {
     const album = await this.albumModel.findById(id);
     return album;

@@ -54,7 +54,7 @@ export class AuthController {
     if (!refreshToken) {
       throw new HttpException(
         'Отсутствует refreshToken',
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.UNAUTHORIZED,
       );
     }
     const userData = await this.authService.refresh(refreshToken);

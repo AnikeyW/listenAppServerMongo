@@ -4,7 +4,7 @@ import { Track, TrackDocument } from '../../track/schemas/track.schema';
 
 export type AlbumDocument = Album & Document;
 
-@Schema()
+@Schema({ timestamps: { createdAt: 'createdAt' } })
 export class Album {
   @Prop()
   name: string;

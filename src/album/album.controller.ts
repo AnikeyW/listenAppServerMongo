@@ -5,13 +5,16 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { Types } from 'mongoose';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('/albums')
 export class AlbumController {
@@ -27,6 +30,12 @@ export class AlbumController {
   @Get()
   getAll() {
     return this.albumService.getAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/useralbums')
+  getMyTracks(@Query('userId') userId: Types.ObjectId) {
+    return this.albumService.getMyAlbums(userId);
   }
 
   @Get(':id')
