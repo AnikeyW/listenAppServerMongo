@@ -7,6 +7,7 @@ import {
   Post,
   Query,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
@@ -14,6 +15,7 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { Types } from 'mongoose';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('/tracks')
 export class TrackController {
@@ -38,6 +40,16 @@ export class TrackController {
   @Get()
   getAll(@Query('count') count: number, @Query('offset') offset: number) {
     return this.trackService.getAll(Number(count), Number(offset));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/usertracks')
+  getMyTracks(
+    @Query('count') count: number,
+    @Query('offset') offset: number,
+    @Query('userId') userId: Types.ObjectId,
+  ) {
+    return this.trackService.getMyTracks(userId, Number(count), Number(offset));
   }
 
   @Get('/search')

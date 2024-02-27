@@ -75,7 +75,21 @@ export class TrackService {
     const tracks = await this.trackModel
       .find()
       .skip(Number(offset))
-      .limit(Number(count));
+      .limit(Number(count))
+      .sort({ createdAt: -1 });
+    return tracks;
+  }
+
+  async getMyTracks(
+    userId: Types.ObjectId,
+    count: number = 10,
+    offset: number = 0,
+  ): Promise<Track[]> {
+    const tracks = await this.trackModel
+      .find({ owner: userId })
+      .skip(Number(offset))
+      .limit(Number(count))
+      .sort({ createdAt: -1 });
     return tracks;
   }
 

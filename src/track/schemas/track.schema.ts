@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type TrackDocument = Track & Document;
 
-@Schema()
+@Schema({ timestamps: { createdAt: 'createdAt' } })
 export class Track {
   @Prop()
   name: string;
