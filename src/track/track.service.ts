@@ -76,7 +76,7 @@ export class TrackService {
       .find()
       .skip(Number(offset))
       .limit(Number(count))
-      .sort({ createdAt: -1 });
+      .sort({ listens: -1 });
     return tracks;
   }
 
@@ -136,7 +136,10 @@ export class TrackService {
 
   async search(query: string): Promise<Track[]> {
     const tracks = await this.trackModel.find({
-      name: { $regex: new RegExp(query, 'i') },
+      $or: [
+        { name: { $regex: new RegExp(query, 'i') } },
+        { artist: { $regex: new RegExp(query, 'i') } },
+      ],
     });
     return tracks;
   }
