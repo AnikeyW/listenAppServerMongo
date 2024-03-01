@@ -4,8 +4,10 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
+  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -50,6 +52,17 @@ export class TrackController {
     @Query('userId') userId: Types.ObjectId,
   ) {
     return this.trackService.getMyTracks(userId, Number(count), Number(offset));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('tofavorites')
+  addToFavorites(
+    @Req() req,
+    @Body()
+    { userId, trackId }: { userId: Types.ObjectId; trackId: Types.ObjectId },
+  ) {
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.trackService.addToFavorites(trackId, userId, accessToken);
   }
 
   @Get('/search')

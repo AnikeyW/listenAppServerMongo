@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Track, TrackDocument } from './schemas/track.schema';
 import { Model, Types } from 'mongoose';
@@ -8,6 +8,8 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { EntityType, FileService, FileType } from '../file/file.service';
 import { AlbumService } from '../album/album.service';
 import { Album, AlbumDocument } from '../album/schemas/album.schema';
+import { UserService } from '../user/user.service';
+import { TokenService } from '../token/token.service';
 
 @Injectable()
 export class TrackService {
@@ -17,6 +19,8 @@ export class TrackService {
     @InjectModel(Album.name) private albumModel: Model<AlbumDocument>,
     private fileService: FileService,
     private albumService: AlbumService,
+    private userService: UserService,
+    private tokenService: TokenService,
   ) {}
 
   async create(dto: CreateTrackDto, picture, audio): Promise<Track> {
@@ -142,5 +146,47 @@ export class TrackService {
       ],
     });
     return tracks;
+  }
+
+  async addToFavorites(
+    trackId: Types.ObjectId,
+    userId: Types.ObjectId,
+    accessToken: string,
+  ) {
+    const tokenData = await this.tokenService.validateAccessToken(accessToken);
+    if (!tokenData) {
+      throw new HttpException(
+        'Ошибка валидации токена',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (userId.toString() !== tokenData.sub) {
+      throw new HttpException(
+        'Нельзя изменить данные другого пользователя',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const track = await this.trackModel.findById(trackId, { __v: false });
+    if (!track) {
+      throw new HttpException(
+        'Трек с таким id не найден',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const user = await this.userService.findById(userId.toString());
+    if (!user) {
+      throw new HttpException(
+        'Неверный id пользователя',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await user.favoritesTracks.push(trackId);
+    await user.save();
+
+    const { password, __v, ...result } = user['_doc'];
+
+    return result;
   }
 }
