@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { Token, TokenDocument } from './schemas/token.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
+import { ITokenData } from './types';
 
 @Injectable()
 export class TokenService {
@@ -42,7 +43,7 @@ export class TokenService {
     return await this.tokenModel.findOne({ refreshToken });
   }
 
-  validateAccessToken(token) {
+  validateAccessToken(token): ITokenData {
     try {
       const userData = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
@@ -54,7 +55,7 @@ export class TokenService {
     }
   }
 
-  validateRefreshToken(token) {
+  validateRefreshToken(token): ITokenData {
     try {
       const userData = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,

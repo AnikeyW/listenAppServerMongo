@@ -49,9 +49,29 @@ export class TrackController {
   getMyTracks(
     @Query('count') count: number,
     @Query('offset') offset: number,
-    @Query('userId') userId: Types.ObjectId,
+    @Req() req,
   ) {
-    return this.trackService.getMyTracks(userId, Number(count), Number(offset));
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.trackService.getMyTracks(
+      accessToken,
+      Number(count),
+      Number(offset),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/favorites')
+  getFavorites(
+    @Query('count') count: number,
+    @Query('offset') offset: number,
+    @Req() req,
+  ) {
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.trackService.getFavorites(
+      accessToken,
+      Number(count),
+      Number(offset),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -59,10 +79,10 @@ export class TrackController {
   addToFavorites(
     @Req() req,
     @Body()
-    { userId, trackId }: { userId: Types.ObjectId; trackId: Types.ObjectId },
+    { trackId }: { trackId: Types.ObjectId },
   ) {
     const accessToken = req.headers.authorization.split(' ')[1];
-    return this.trackService.addToFavorites(trackId, userId, accessToken);
+    return this.trackService.addToFavorites(trackId, accessToken);
   }
 
   @Get('/search')

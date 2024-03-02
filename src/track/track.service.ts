@@ -85,12 +85,21 @@ export class TrackService {
   }
 
   async getMyTracks(
-    userId: Types.ObjectId,
+    accessToken: string,
     count: number = 10,
     offset: number = 0,
   ): Promise<Track[]> {
+    const tokenData = await this.tokenService.validateAccessToken(accessToken);
+
+    if (!tokenData) {
+      throw new HttpException(
+        'Не валидный токен доступа',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
     const tracks = await this.trackModel
-      .find({ owner: userId })
+      .find({ owner: tokenData.sub })
       .skip(Number(offset))
       .limit(Number(count))
       .sort({ createdAt: -1 });
@@ -100,6 +109,36 @@ export class TrackService {
   async getOne(id: Types.ObjectId): Promise<Track> {
     const track = await this.trackModel.findById(id).populate('comments');
     return track;
+  }
+
+  async getFavorites(
+    accessToken: string,
+    count: number = 10,
+    offset: number = 0,
+  ): Promise<Track[]> {
+    const tokenData = await this.tokenService.validateAccessToken(accessToken);
+
+    if (!tokenData) {
+      throw new HttpException(
+        'Не валидный токен доступа',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const user = await this.userService.findById(tokenData.sub);
+    if (!user) {
+      throw new HttpException(
+        'Неверный id пользователя',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const tracks = await this.trackModel
+      .find({ _id: user.favoritesTracks })
+      .skip(Number(offset))
+      .limit(Number(count))
+      .sort({ createdAt: -1 });
+    return tracks;
   }
 
   async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
@@ -148,11 +187,7 @@ export class TrackService {
     return tracks;
   }
 
-  async addToFavorites(
-    trackId: Types.ObjectId,
-    userId: Types.ObjectId,
-    accessToken: string,
-  ) {
+  async addToFavorites(trackId: Types.ObjectId, accessToken: string) {
     const tokenData = await this.tokenService.validateAccessToken(accessToken);
     if (!tokenData) {
       throw new HttpException(
@@ -160,12 +195,7 @@ export class TrackService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (userId.toString() !== tokenData.sub) {
-      throw new HttpException(
-        'Нельзя изменить данные другого пользователя',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+
     const track = await this.trackModel.findById(trackId, { __v: false });
     if (!track) {
       throw new HttpException(
@@ -174,7 +204,7 @@ export class TrackService {
       );
     }
 
-    const user = await this.userService.findById(userId.toString());
+    const user = await this.userService.findById(tokenData.sub);
     if (!user) {
       throw new HttpException(
         'Неверный id пользователя',
