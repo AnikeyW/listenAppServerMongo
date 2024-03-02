@@ -21,11 +21,13 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class AlbumController {
   constructor(private albumService: AlbumService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(FileFieldsInterceptor([{ name: 'picture', maxCount: 1 }]))
-  create(@UploadedFiles() files, @Body() dto: CreateAlbumDto) {
+  create(@UploadedFiles() files, @Body() dto: CreateAlbumDto, @Req() req) {
+    const accessToken = req.headers.authorization.split(' ')[1];
     const { picture } = files;
-    return this.albumService.create(dto, picture[0]);
+    return this.albumService.create(dto, picture[0], accessToken);
   }
 
   @Get()
@@ -35,8 +37,9 @@ export class AlbumController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/useralbums')
-  getMyTracks(@Query('userId') userId: Types.ObjectId) {
-    return this.albumService.getMyAlbums(userId);
+  getMyAlbums(@Req() req) {
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.albumService.getMyAlbums(accessToken);
   }
 
   @Get(':id')

@@ -21,14 +21,25 @@ export class AlbumService {
     private tokenService: TokenService,
   ) {}
 
-  async create(dto: CreateAlbumDto, picture): Promise<Album> {
+  async create(
+    dto: CreateAlbumDto,
+    picture,
+    accessToken: string,
+  ): Promise<Album> {
+    const tokenData = this.tokenService.validateAccessToken(accessToken);
+    if (!tokenData) {
+      throw new UnauthorizedException();
+    }
+
     const picturePath = this.fileService.createFile(
       FileType.IMAGE,
       picture,
       EntityType.ALBUM,
     );
+
     const album = await this.albumModel.create({
       ...dto,
+      owner: tokenData.sub,
       picture: picturePath,
       tracks: [],
     });
@@ -40,9 +51,14 @@ export class AlbumService {
     return albums;
   }
 
-  async getMyAlbums(userId: Types.ObjectId): Promise<Album[]> {
+  async getMyAlbums(accessToken: string): Promise<Album[]> {
+    const tokenData = this.tokenService.validateAccessToken(accessToken);
+    if (!tokenData) {
+      throw new UnauthorizedException();
+    }
+
     const albums = await this.albumModel
-      .find({ owner: userId })
+      .find({ owner: tokenData.sub })
       .sort({ createdAt: -1 });
     return albums;
   }
