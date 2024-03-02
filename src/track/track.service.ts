@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Track, TrackDocument } from './schemas/track.schema';
 import { Model, Types } from 'mongoose';
@@ -126,12 +131,8 @@ export class TrackService {
     offset: number = 0,
   ): Promise<Track[]> {
     const tokenData = await this.tokenService.validateAccessToken(accessToken);
-
     if (!tokenData) {
-      throw new HttpException(
-        'Не валидный токен доступа',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new UnauthorizedException();
     }
 
     const user = await this.userService.findById(tokenData.sub);
@@ -150,11 +151,26 @@ export class TrackService {
     return tracks;
   }
 
-  async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
+  async delete(
+    id: Types.ObjectId,
+    accessToken: string,
+  ): Promise<Types.ObjectId> {
+    const tokenData = await this.tokenService.validateAccessToken(accessToken);
+    if (!tokenData) {
+      throw new UnauthorizedException();
+    }
+
     const track = await this.trackModel.findByIdAndDelete(id);
     if (!track) {
       throw new HttpException(
         'Трек с таким id не найден',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (tokenData.sub !== track.owner.toString()) {
+      throw new HttpException(
+        'Нельзя удалить чужой трек',
         HttpStatus.BAD_REQUEST,
       );
     }

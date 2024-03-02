@@ -101,9 +101,11 @@ export class TrackController {
     return this.trackService.getOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  delete(@Param('id') id: Types.ObjectId) {
-    return this.trackService.delete(id);
+  delete(@Req() req, @Param('id') id: Types.ObjectId) {
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.trackService.delete(id, accessToken);
   }
 
   @Post('/comment')
