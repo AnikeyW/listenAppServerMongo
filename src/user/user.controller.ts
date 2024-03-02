@@ -12,7 +12,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { Types } from 'mongoose';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -31,12 +30,8 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileFieldsInterceptor([{ name: 'picture', maxCount: 1 }]))
-  @Patch(':id')
-  updateUserImage(
-    @Param('id') id: Types.ObjectId,
-    @UploadedFiles() files,
-    @Req() req,
-  ) {
+  @Patch('/updateimage')
+  updateUserImage(@UploadedFiles() files, @Req() req) {
     const accessToken = req.headers.authorization.split(' ')[1];
     const { picture } = files;
     if (!picture[0]) {
@@ -45,6 +40,6 @@ export class UserController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return this.userService.updateImage(id, picture[0], accessToken);
+    return this.userService.updateImage(picture[0], accessToken);
   }
 }

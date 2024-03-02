@@ -41,14 +41,7 @@ export class UserService {
     return 'Deleted all';
   }
 
-  async updateImage(userId: Types.ObjectId, picture: any, accessToken: string) {
-    const user = await this.userModel.findOne({ _id: userId });
-    if (!user) {
-      throw new HttpException(
-        'Неверный идентификатор пользователя',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+  async updateImage(picture: any, accessToken: string) {
     const tokenData = await this.tokenService.validateAccessToken(accessToken);
     if (!tokenData) {
       throw new HttpException(
@@ -56,16 +49,21 @@ export class UserService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (user._id.toString() !== tokenData.sub) {
+    const user = await this.userModel.findOne({ _id: tokenData.sub });
+    if (!user) {
       throw new HttpException(
-        'Нельзя изменить данные другого пользователя',
+        'Пользователь с таким id не найден',
         HttpStatus.BAD_REQUEST,
       );
     }
 
     //удаляем старое изображение
     if (user.image) {
-      this.fileService.removeFile(user.image);
+      try {
+        this.fileService.removeFile(user.image);
+      } catch (e) {
+        console.log(e);
+      }
     }
 
     const picturePath = this.fileService.createFile(
