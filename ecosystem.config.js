@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'my-app',
+      name: 'listen-bro-app',
       script: 'npm',
       args: 'run start:prod',
       autorestart: true,

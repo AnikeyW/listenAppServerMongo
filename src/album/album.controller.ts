@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -45,8 +46,9 @@ export class AlbumController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  delete(@Param('id') id: Types.ObjectId) {
-    return this.albumService.delete(id);
+  delete(@Param('id') id: Types.ObjectId, @Req() req) {
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.albumService.delete(id, accessToken);
   }
 
   @UseGuards(JwtAuthGuard)

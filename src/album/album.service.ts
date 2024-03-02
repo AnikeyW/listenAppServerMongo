@@ -1,10 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { EntityType, FileService, FileType } from '../file/file.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Album, AlbumDocument } from './schemas/album.schema';
 import { Model, Types } from 'mongoose';
 import { Track, TrackDocument } from '../track/schemas/track.schema';
+import { TokenService } from '../token/token.service';
 
 @Injectable()
 export class AlbumService {
@@ -12,6 +18,7 @@ export class AlbumService {
     @InjectModel(Album.name) private albumModel: Model<AlbumDocument>,
     @InjectModel(Track.name) private trackModel: Model<TrackDocument>,
     private fileService: FileService,
+    private tokenService: TokenService,
   ) {}
 
   async create(dto: CreateAlbumDto, picture): Promise<Album> {
@@ -45,11 +52,25 @@ export class AlbumService {
     return album;
   }
 
-  async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
-    const album = await this.albumModel.findByIdAndDelete(id);
+  async delete(
+    id: Types.ObjectId,
+    accessToken: string,
+  ): Promise<Types.ObjectId> {
+    const tokenData = this.tokenService.validateAccessToken(accessToken);
+    if (!tokenData) {
+      throw new UnauthorizedException();
+    }
 
+    const album = await this.albumModel.findByIdAndDelete(id);
     if (!album) {
-      throw new Error('Альбом не найден');
+      throw new HttpException('Альбом не найден', HttpStatus.BAD_REQUEST);
+    }
+
+    if (tokenData.sub !== album.owner.toString()) {
+      throw new HttpException(
+        'Нельзя удалить чужой альбом',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (album.tracks.length !== 0) {
@@ -68,10 +89,13 @@ export class AlbumService {
   async addTrackToAlbum(albumId: Types.ObjectId, trackId: Types.ObjectId) {
     const album = await this.albumModel.findById(albumId);
     if (!album) {
-      throw new Error('Альбом не найден');
+      throw new HttpException('Альбом не найден', HttpStatus.BAD_REQUEST);
     }
 
     const track = await this.trackModel.findById(trackId);
+    if (!track) {
+      throw new HttpException('Трек не найден', HttpStatus.BAD_REQUEST);
+    }
     track.albumId = albumId;
     await track.save();
 

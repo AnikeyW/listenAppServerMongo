@@ -143,6 +143,13 @@ export class TrackService {
 
   async delete(id: Types.ObjectId): Promise<Types.ObjectId> {
     const track = await this.trackModel.findByIdAndDelete(id);
+    if (!track) {
+      throw new HttpException(
+        'Трек с таким id не найден',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const entityType = track.picture.split('/')[1];
 
     if (entityType === EntityType.TRACK) {
