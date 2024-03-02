@@ -86,10 +86,26 @@ export class AlbumService {
     return album._id;
   }
 
-  async addTrackToAlbum(albumId: Types.ObjectId, trackId: Types.ObjectId) {
+  async addTrackToAlbum(
+    albumId: Types.ObjectId,
+    trackId: Types.ObjectId,
+    accessToken: string,
+  ) {
+    const tokenData = this.tokenService.validateAccessToken(accessToken);
+    if (!tokenData) {
+      throw new UnauthorizedException();
+    }
+
     const album = await this.albumModel.findById(albumId);
     if (!album) {
       throw new HttpException('Альбом не найден', HttpStatus.BAD_REQUEST);
+    }
+
+    if (tokenData.sub !== album.owner.toString()) {
+      throw new HttpException(
+        'Нельзя добавить трек в чужой альбом',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const track = await this.trackModel.findById(trackId);

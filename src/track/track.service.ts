@@ -23,7 +23,12 @@ export class TrackService {
     private tokenService: TokenService,
   ) {}
 
-  async create(dto: CreateTrackDto, picture, audio): Promise<Track> {
+  async create(
+    accessToken: string,
+    dto: CreateTrackDto,
+    picture,
+    audio,
+  ): Promise<Track> {
     const audioPath = this.fileService.createFile(
       FileType.AUDIO,
       audio,
@@ -47,12 +52,16 @@ export class TrackService {
       duration: duration,
     });
     if (albumId) {
-      await this.albumService.addTrackToAlbum(albumId, track._id);
+      await this.albumService.addTrackToAlbum(albumId, track._id, accessToken);
     }
     return track;
   }
 
-  async createWithAlbumPicture(dto: CreateTrackDto, audio): Promise<Track> {
+  async createWithAlbumPicture(
+    accessToken: string,
+    dto: CreateTrackDto,
+    audio,
+  ): Promise<Track> {
     const audioPath = this.fileService.createFile(
       FileType.AUDIO,
       audio,
@@ -70,7 +79,7 @@ export class TrackService {
       duration: duration,
     });
     if (albumId) {
-      await this.albumService.addTrackToAlbum(albumId, track._id);
+      await this.albumService.addTrackToAlbum(albumId, track._id, accessToken);
     }
     return track;
   }

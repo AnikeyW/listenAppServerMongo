@@ -23,6 +23,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class TrackController {
   constructor(private trackService: TrackService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -30,12 +31,17 @@ export class TrackController {
       { name: 'audio', maxCount: 1 },
     ]),
   )
-  create(@UploadedFiles() files, @Body() dto: CreateTrackDto) {
+  create(@UploadedFiles() files, @Body() dto: CreateTrackDto, @Req() req) {
+    const accessToken = req.headers.authorization.split(' ')[1];
     const { picture, audio } = files;
     if (!picture && typeof dto.picture === 'string') {
-      return this.trackService.createWithAlbumPicture(dto, audio[0]);
+      return this.trackService.createWithAlbumPicture(
+        accessToken,
+        dto,
+        audio[0],
+      );
     } else {
-      return this.trackService.create(dto, picture[0], audio[0]);
+      return this.trackService.create(accessToken, dto, picture[0], audio[0]);
     }
   }
 

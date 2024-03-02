@@ -53,8 +53,12 @@ export class AlbumController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/addtrack')
-  addTrack(@Body() data: { albumId: Types.ObjectId; trackId: Types.ObjectId }) {
+  addTrack(
+    @Body() data: { albumId: Types.ObjectId; trackId: Types.ObjectId },
+    @Req() req,
+  ) {
     const { albumId, trackId } = data;
-    return this.albumService.addTrackToAlbum(albumId, trackId);
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.albumService.addTrackToAlbum(albumId, trackId, accessToken);
   }
 }
