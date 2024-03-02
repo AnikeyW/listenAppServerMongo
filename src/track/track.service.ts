@@ -185,6 +185,9 @@ export class TrackService {
 
     if (track.albumId) {
       const album = await this.albumModel.findById(track.albumId);
+      if (!album) {
+        throw new HttpException('Альбом не найден', HttpStatus.ACCEPTED);
+      }
       const albumTracks = album.tracks.filter(
         (t) => t._id.toString() !== id.toString(),
       );

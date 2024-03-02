@@ -65,6 +65,9 @@ export class AlbumService {
 
   async getOne(id: string): Promise<Album> {
     const album = await this.albumModel.findById(id);
+    if (!album) {
+      throw new HttpException('Альбом не найден', HttpStatus.BAD_REQUEST);
+    }
     return album;
   }
 
