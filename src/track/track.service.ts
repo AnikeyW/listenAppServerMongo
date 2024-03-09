@@ -254,4 +254,37 @@ export class TrackService {
 
     return result;
   }
+
+  async deleteTrackFromFavorites(trackId: Types.ObjectId, accessToken: string) {
+    const tokenData = await this.tokenService.validateAccessToken(accessToken);
+    if (!tokenData) {
+      throw new HttpException(
+        'Ошибка валидации токена',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const track = await this.trackModel.findById(trackId, { __v: false });
+    if (!track) {
+      throw new HttpException(
+        'Трек с таким id не найден',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const user = await this.userService.findById(tokenData.sub);
+    if (!user) {
+      throw new HttpException(
+        'Неверный id пользователя',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    user.favoritesTracks = user.favoritesTracks.filter((id) => id !== trackId);
+    await user.save();
+
+    const { password, __v, ...result } = user['_doc'];
+
+    return result;
+  }
 }

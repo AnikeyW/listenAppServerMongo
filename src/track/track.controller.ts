@@ -91,6 +91,17 @@ export class TrackController {
     return this.trackService.addToFavorites(trackId, accessToken);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Patch('deletefromfavorites')
+  deleteFromFavorites(
+    @Req() req,
+    @Body()
+    { trackId }: { trackId: Types.ObjectId },
+  ) {
+    const accessToken = req.headers.authorization.split(' ')[1];
+    return this.trackService.deleteTrackFromFavorites(trackId, accessToken);
+  }
+
   @Get('/search')
   search(@Query('query') query: string) {
     return this.trackService.search(query);
