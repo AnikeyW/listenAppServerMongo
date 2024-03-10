@@ -142,15 +142,26 @@ export class TrackService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
     const trackIds = user.favoritesTracks.map((favorite) => favorite.trackId);
 
-    const tracks = await this.trackModel
-      .find({ _id: { $in: trackIds } })
-      .skip(Number(offset))
-      .limit(Number(count))
-      .sort({ createdAt: -1 });
-    return tracks;
+    const tracks = await this.trackModel.find({ _id: { $in: trackIds } });
+
+    tracks.sort((a, b) => {
+      const indexA = trackIds.findIndex(
+        (id) => id.toString() === a._id.toString(),
+      );
+      const indexB = trackIds.findIndex(
+        (id) => id.toString() === b._id.toString(),
+      );
+      return (
+        user.favoritesTracks[indexB].addedAt.getTime() -
+        user.favoritesTracks[indexA].addedAt.getTime()
+      );
+    });
+
+    const paginatedTracks = tracks.slice(offset, offset + count);
+
+    return paginatedTracks;
   }
 
   async delete(
@@ -283,7 +294,7 @@ export class TrackService {
     }
 
     user.favoritesTracks = user.favoritesTracks.filter(
-      (id) => id.trackId !== trackId,
+      (track) => track.trackId.toString() !== trackId.toString(),
     );
     await user.save();
 
