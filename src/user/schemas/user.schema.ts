@@ -17,8 +17,11 @@ export class User {
   @Prop({ default: null })
   image: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Track' }] })
-  favoritesTracks: Types.ObjectId[];
+  @Prop({
+    trackId: { type: [{ type: Types.ObjectId, ref: 'Track' }] },
+    addedAt: { type: Date, default: Date.now() },
+  })
+  favoritesTracks: { trackId: Types.ObjectId; addedAt: Date }[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
