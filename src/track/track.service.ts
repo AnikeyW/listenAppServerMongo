@@ -143,8 +143,10 @@ export class TrackService {
       );
     }
 
+    const trackIds = user.favoritesTracks.map((favorite) => favorite.trackId);
+
     const tracks = await this.trackModel
-      .find({ _id: user.favoritesTracks })
+      .find({ _id: { $in: trackIds } })
       .skip(Number(offset))
       .limit(Number(count))
       .sort({ createdAt: -1 });
