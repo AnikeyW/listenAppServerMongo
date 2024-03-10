@@ -18,8 +18,12 @@ export class User {
   image: string;
 
   @Prop({
-    trackId: { type: [{ type: Types.ObjectId, ref: 'Track' }] },
-    addedAt: { type: Date, default: Date.now() },
+    type: [
+      {
+        trackId: { type: Types.ObjectId, ref: 'Track' },
+        addedAt: { type: Date, default: new Date() },
+      },
+    ],
   })
   favoritesTracks: { trackId: Types.ObjectId; addedAt: Date }[];
 }

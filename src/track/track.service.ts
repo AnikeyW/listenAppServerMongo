@@ -249,7 +249,7 @@ export class TrackService {
       );
     }
 
-    await user.favoritesTracks.push(trackId);
+    user.favoritesTracks.push({ trackId: trackId, addedAt: new Date() });
     await user.save();
 
     const { password, __v, ...result } = user['_doc'];
@@ -282,7 +282,9 @@ export class TrackService {
       );
     }
 
-    user.favoritesTracks = user.favoritesTracks.filter((id) => id !== trackId);
+    user.favoritesTracks = user.favoritesTracks.filter(
+      (id) => id.trackId !== trackId,
+    );
     await user.save();
 
     const { password, __v, ...result } = user['_doc'];
